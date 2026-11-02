@@ -1,0 +1,31 @@
+import puppeteer from 'puppeteer-core';
+import fs from 'fs';
+import { buildDict } from '../src/solver.js';
+import { generatePuzzle } from '../src/generate.js';
+const rows = JSON.parse(fs.readFileSync(new URL('../data/words.json', import.meta.url)));
+const dicts = new Map();
+const dict = (mf) => { if (!dicts.has(mf)) dicts.set(mf, buildDict(rows.filter(r => r[1] >= mf), 3, 7)); return dicts.get(mf); };
+const expected = generatePuzzle('2026-11-03', 'classic', dict).slots.map(s => s.word).join(',');
+const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new',
+  args: ['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'] });
+const run = async (w, h, mobile, tag, size) => {
+  const p = await b.newPage();
+  await p.setViewport({ width: w, height: h, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile });
+  const logs = [];
+  p.on('console', m => { if (m.type() !== 'warn') logs.push(m.type() + ': ' + m.text()); });
+  p.on('pageerror', e => logs.push('PAGEERROR: ' + e.message));
+  await p.goto(`file:///tmp/work/cubeword/dist/index.html?d=2026-11-03&s=${size}`);
+  await p.evaluate(() => localStorage.setItem('cubeword:v1', JSON.stringify({ seenHelp: true })));
+  await p.reload();
+  await p.waitForFunction('window.__cwReady === true', { timeout: 90000 });
+  await p.evaluate(() => __cw.scene.skipIntro());
+  await p.evaluate(() => { const g = __cw.game; const s = g.activeSlot(); for (let i = 0; i < s.cells.length; i++) g.type(g.cell(g.sel).letter); g.nextSlot(1); });
+  await new Promise(r => setTimeout(r, 1500)); await p.evaluate(() => __cw.scene.snap()); await new Promise(r => setTimeout(r, 2500));
+  await p.screenshot({ path: `shots/final-${tag}.png` });
+  const words = await p.evaluate(() => __cw.cur.puzzle.slots.map(s => s.word).join(','));
+  console.log(tag, 'workers:', p.workers().length, '| matches node generation:', size === 'classic' ? words === expected : 'n/a', '|', logs.join(' ; ') || 'no errors');
+  await p.close();
+};
+await run(1440, 900, false, 'desktop', 'classic');
+await run(390, 844, true, 'mobile', 'classic');
+await b.close();

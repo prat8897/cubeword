@@ -1,0 +1,17 @@
+{
+  "name": "cubeword",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "three": "^0.187.0"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node test/game.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "*",
+    "puppeteer-core": "*"
+  }
+}
