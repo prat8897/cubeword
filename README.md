@@ -64,3 +64,7 @@ Rebuild the word list: `pip install wordfreq wn==0.0.23 && python3 tools/build_w
 
 Clues are adapted from Princeton WordNet 3.0 (WordNet licence). Word frequencies come from the wordfreq project
 (data CC BY-SA 4.0). Rendering by three.js (MIT). Keep the attribution line in Settings if you publish.
+
+## Install as an app (PWA)
+
+CubeWord ships a web manifest and service worker, so it can be installed from the browser ("Install" / "Add to Home Screen") and plays offline. After `npm run build`, copy everything in `dist/` to the repo root before committing.

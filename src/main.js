@@ -27,6 +27,10 @@ if (typeof document === 'undefined') {
   startApp();
 }
 
+if (typeof document !== 'undefined' && 'serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
 function startApp() {
   const $ = (s, r = document) => r.querySelector(s);
   const EPOCH = '2026-11-03';
