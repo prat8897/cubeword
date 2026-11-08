@@ -956,10 +956,50 @@ export class CubeScene {
     this.composer.render(dt);
   }
 
+  // Keep every tile's letter upright on screen: for each face turned toward the viewer, find the
+  // quarter-turn (about the face normal) that brings the face's "up" closest to screen-up, with
+  // hysteresis so tiles don't flutter near 45 degrees. Tiles then spin individually (small stagger).
+  updateTileSpin(dt) {
+    if (!this.faceK) this.faceK = new Array(6).fill(null);
+    const v = this._spinV || (this._spinV = new THREE.Vector3());
+    const HALF = Math.PI / 2;
+    for (let f = 0; f < 6; f++) {
+      v.set(...FACES[f].n).applyQuaternion(this.q);
+      if (v.z < 0.22) continue; // edge-on or hidden: leave as is
+      v.set(...FACES[f].u).applyQuaternion(this.q);
+      const want = (Math.PI / 2 - Math.atan2(v.y, v.x)) / HALF; // in quarter-turns
+      let k = this.faceK[f];
+      if (k === null) k = Math.round(want);
+      else {
+        let d = (want - k) % 4; if (d > 2) d -= 4; if (d < -2) d += 4;
+        if (Math.abs(d) > 0.62) k += Math.round(d);
+      }
+      this.faceK[f] = k;
+    }
+    const kk = 1 - Math.exp(-dt * 11);
+    for (const o of this.cells) {
+      const fk = this.faceK[o.cell.face];
+      if (fk === null) continue;
+      if (o.spinK === undefined) { o.spinK = fk; o.spin = fk * HALF; o.spinWait = 0; o.lift.rotation.z = o.spin; }
+      else if (o.spinK !== fk) {
+        o.spinK = fk;
+        o.spinWait = this.reduced ? 0 : Math.random() * 0.18;
+      }
+      if (o.spinWait > 0) { o.spinWait -= dt; continue; }
+      const target = o.spinK * HALF;
+      if (o.spin !== target) {
+        o.spin += (target - o.spin) * kk;
+        if (Math.abs(target - o.spin) < 0.002) o.spin = target;
+        o.lift.rotation.z = o.spin;
+      }
+    }
+  }
+
   updateCells(dt, t) {
     const k = 1 - Math.exp(-dt * 13);
     const kc = 1 - Math.exp(-dt * 10);
     const accent2 = this.cAccent2 || IVORY;
+    this.updateTileSpin(dt);
     const tmp = this._tmp || (this._tmp = new THREE.Color());
     const tmp2 = this._tmp2 || (this._tmp2 = new THREE.Color());
     for (const o of this.cells) {
