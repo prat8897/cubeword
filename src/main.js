@@ -39,7 +39,9 @@ function startApp() {
   const fmtTime = (sec) => { sec = Math.max(0, Math.round(sec)); const m = Math.floor(sec / 60), s = sec % 60; return m >= 60 ? `${Math.floor(m / 60)}:${pad(m % 60)}:${pad(s)}` : `${m}:${pad(s)}`; };
   const clampDate = (s) => { if (!/^\d{4}-\d{2}-\d{2}$/.test(s || '')) return todayStr(); const t = todayStr(); if (s > t) return t; if (s < EPOCH) return EPOCH; return s; };
 
+  const SUPPORT_URL = 'https://buymeacoffee.com/prat8897';
   const ICON = {
+    cup: '<svg viewBox="0 0 24 24"><path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5zM16 10h1.5a2.5 2.5 0 0 1 0 5H16M8 3v2M11 3v2M14 3v2"/></svg>',
     help: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.3c-.8.4-1.2 1-1.2 1.8"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg>',
     stats: '<svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-7"/></svg>',
     gear: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>',
@@ -78,6 +80,7 @@ function startApp() {
   $('#btnClues').innerHTML = ICON.list;
   $('#btnAssist').innerHTML = ICON.bulb;
   $('#btnStats').innerHTML = ICON.stats;
+  $('#btnSupport').innerHTML = ICON.cup;
   $('#btnHelp').innerHTML = ICON.help;
   $('#btnSettings').innerHTML = ICON.gear;
   $('#prevClue').innerHTML = ICON.left;
@@ -571,6 +574,7 @@ function startApp() {
       <div class="row"><div>Motion<small>Idle sway and cube drift</small></div>
         <select class="sel" id="setMotion"><option value="auto">System</option><option value="full">Full</option><option value="reduced">Reduced</option></select></div>
       <div class="btnrow"><button class="btn" id="openStats2">Stats &amp; archive</button><button class="btn" id="openHelp2">How to play</button></div>
+      <div class="btnrow"><a class="btn support" href="${SUPPORT_URL}" target="_blank" rel="noopener">☕ Support CubeWord</a></div>
       <p class="fine">Clues are adapted from Princeton WordNet. Word frequencies from the wordfreq project (CC BY-SA 4.0). three.js renders the cube.</p>`, {
       onMount: (bd) => {
         bd.querySelector('#setQuality').value = s.quality;
@@ -623,6 +627,7 @@ function startApp() {
       <pre id="shareTxt">${shareText()}</pre>
       <div class="btnrow">
         <button class="btn primary" id="doShare">Share result</button>
+        <a class="btn support" href="${SUPPORT_URL}" target="_blank" rel="noopener">☕ Buy me a coffee</a>
         ${nextSize ? `<button class="btn" id="doNext">Try ${SIZES[nextSize].label}</button>` : '<button class="btn" data-close>Admire the cube</button>'}
       </div>`, {
       cls: 'win',
